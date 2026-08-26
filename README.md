@@ -11,6 +11,8 @@ This prototype models one question:
 It currently provides:
 
 - edge-to-stable promotion only when test evidence names the exact candidate digest;
+- SHA-256 digests computed from artifact file bytes rather than trusted declarations;
+- required build ID, architecture, signature-valid, and test-pass evidence;
 - a promotion receipt preserving the previous stable digest;
 - rollback receipts that point back to the promotion receipt and previous artifact;
 - rejection of mismatched artifact evidence and failed tests.
@@ -24,4 +26,4 @@ python3 -m pytest -q
 python3 verify.py
 ```
 
-The next slice should replace synthetic digests with real package files and attach native build, signature, and architecture evidence without changing the gate contract.
+The demo hashes a temporary artifact file. The next slice should replace that fixture with a real Arch package produced by a controlled build adapter, while keeping this gate contract unchanged.

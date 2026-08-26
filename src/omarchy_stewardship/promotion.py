@@ -4,6 +4,7 @@ from dataclasses import dataclass
 import hashlib
 import json
 from collections.abc import Mapping
+from pathlib import Path
 
 
 class EvidenceMismatch(ValueError):
@@ -16,6 +17,7 @@ class Artifact:
     version: str
     architecture: str
     digest: str
+    source_path: str | None = None
 
 
 @dataclass(frozen=True)
@@ -44,6 +46,18 @@ def _receipt_id(payload: Mapping[str, object]) -> str:
     return "receipt:" + hashlib.sha256(encoded).hexdigest()
 
 
+def artifact_from_file(*, name: str, version: str, architecture: str, path: Path) -> Artifact:
+    """Describe an artifact using the SHA-256 digest of its actual bytes."""
+    digest = hashlib.sha256(path.read_bytes()).hexdigest()
+    return Artifact(
+        name=name,
+        version=version,
+        architecture=architecture,
+        digest="sha256:" + digest,
+        source_path=str(path),
+    )
+
+
 def promote_edge_to_stable(
     *,
     candidate: Artifact,
@@ -55,6 +69,12 @@ def promote_edge_to_stable(
     """Promote an edge artifact only when its evidence matches exactly."""
     if evidence.get("artifact_digest") != candidate.digest:
         raise EvidenceMismatch("artifact digest does not match candidate")
+    if (
+        evidence.get("architecture") != candidate.architecture
+        or not evidence.get("build_id")
+        or evidence.get("signature_valid") is not True
+    ):
+        raise EvidenceMismatch("required build, signature, or architecture evidence is missing")
     if evidence.get("tests_passed") is not True:
         raise EvidenceMismatch("tests evidence is not passing")
     if not actor or not observed_at:

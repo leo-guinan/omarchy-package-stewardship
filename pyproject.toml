@@ -1,0 +1,9 @@
+[project]
+name = "omarchy-package-stewardship"
+version = "0.1.0"
+description = "Receipt-backed artifact promotion and rollback prototype for Omarchy package stewardship"
+requires-python = ">=3.11"
+dependencies = []
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]

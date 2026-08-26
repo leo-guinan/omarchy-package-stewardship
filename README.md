@@ -17,7 +17,21 @@ It currently provides:
 - rollback receipts that point back to the promotion receipt and previous artifact;
 - rejection of mismatched artifact evidence and failed tests.
 
-This is not a package manager and does not build, sign, publish, or install packages. It is the receipt and gate substrate that those adapters can call.
+## Controlled build adapter
+
+`omarchy_stewardship.build.build_package` is the next boundary. It runs one
+`makepkg` invocation without a shell, refuses root execution, requires a
+`PKGBUILD`, requires exactly one `.pkg.tar.*` output and its adjacent `.sig`,
+invokes a separate signature verifier, hashes the resulting bytes, and records
+the build ID, architecture, signature, and independently supplied package-test
+result.
+
+The test suite uses controlled executable fixtures to exercise that contract.
+This macOS host does not have Arch's `makepkg`, so it does not claim to have
+built a real Arch package locally. Run the adapter on an Arch x86_64 or aarch64
+builder for that evidence.
+
+This is not a package manager and does not install or publish packages. The adapter invokes the host's `makepkg` and signature verifier, while the receipt layer records their evidence.
 
 ## Run
 
@@ -26,4 +40,6 @@ python3 -m pytest -q
 python3 verify.py
 ```
 
-The demo hashes a temporary artifact file. The next slice should replace that fixture with a real Arch package produced by a controlled build adapter, while keeping this gate contract unchanged.
+The demo hashes a temporary artifact file; the adapter tests exercise the real
+process boundary. The next slice is an Arch-builder run that produces a real
+package and signature, while keeping this gate contract unchanged.
